@@ -133,16 +133,16 @@ void HAL_RNG_MspDeInit(RNG_HandleTypeDef* hrng)
 }
 
 /**
-  * @brief USART MSP Initialization
+  * @brief UART MSP Initialization
   * This function configures the hardware resources used in this example
-  * @param husart: USART handle pointer
+  * @param huart: UART handle pointer
   * @retval None
   */
-void HAL_USART_MspInit(USART_HandleTypeDef* husart)
+void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-  if(husart->Instance==USART2)
+  if(huart->Instance==USART2)
   {
     /* USER CODE BEGIN USART2_MspInit 0 */
 
@@ -164,9 +164,8 @@ void HAL_USART_MspInit(USART_HandleTypeDef* husart)
     /**USART2 GPIO Configuration
     PA2     ------> USART2_TX
     PA3     ------> USART2_RX
-    PA4     ------> USART2_CK
     */
-    GPIO_InitStruct.Pin = USART_TX_Pin|USART_RX_Pin|GPIO_PIN_4;
+    GPIO_InitStruct.Pin = USART_TX_Pin|USART_RX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -182,14 +181,14 @@ void HAL_USART_MspInit(USART_HandleTypeDef* husart)
 }
 
 /**
-  * @brief USART MSP De-Initialization
+  * @brief UART MSP De-Initialization
   * This function freeze the hardware resources used in this example
-  * @param husart: USART handle pointer
+  * @param huart: UART handle pointer
   * @retval None
   */
-void HAL_USART_MspDeInit(USART_HandleTypeDef* husart)
+void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 {
-  if(husart->Instance==USART2)
+  if(huart->Instance==USART2)
   {
     /* USER CODE BEGIN USART2_MspDeInit 0 */
 
@@ -200,9 +199,8 @@ void HAL_USART_MspDeInit(USART_HandleTypeDef* husart)
     /**USART2 GPIO Configuration
     PA2     ------> USART2_TX
     PA3     ------> USART2_RX
-    PA4     ------> USART2_CK
     */
-    HAL_GPIO_DeInit(GPIOA, USART_TX_Pin|USART_RX_Pin|GPIO_PIN_4);
+    HAL_GPIO_DeInit(GPIOA, USART_TX_Pin|USART_RX_Pin);
 
     /* USER CODE BEGIN USART2_MspDeInit 1 */
 

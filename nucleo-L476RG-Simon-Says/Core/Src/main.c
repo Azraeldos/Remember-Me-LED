@@ -18,7 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -42,16 +44,35 @@
 /* Private variables ---------------------------------------------------------*/
 RNG_HandleTypeDef hrng;
 
-USART_HandleTypeDef husart2;
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+#define SEQUENCE_MAX_LENGTH 50
+#define DEBOUNCE_DELAY_MS   150
+
+typedef enum {
+    STATE_MENU,
+    STATE_SHOW_SEQUENCE,
+    STATE_PLAYER_INPUT,
+    STATE_GAME_OVER
+} GameState_t;
+
+volatile GameState_t game_state = STATE_MENU;
+
+uint8_t sequence[SEQUENCE_MAX_LENGTH];
+uint8_t current_level = 0;
+uint8_t sequence_length = 0;
+uint8_t player_check_index = 0;
+uint32_t random32bit;
+volatile uint8_t button_pressed_flag = 0;
+volatile uint8_t last_pressed_button = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART2_Init(void);
+static void MX_USART2_UART_Init(void);
 static void MX_RNG_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -63,14 +84,61 @@ void all_leds_on(void){
 	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_SET);
-	HAL_Delay(500);
 }
 void all_leds_off(void){
 	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_RESET);
-	HAL_Delay(500);
+}
+void turn_led_on(uint8_t led_num) {
+    if (led_num == 0)      	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_SET);
+    else if (led_num == 1) 	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_SET);
+    else if (led_num == 2) 	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_SET);
 
+}
+void play_error_blink(void) {
+    for (int i = 0; i < 4; i++) {
+        all_leds_on();
+        HAL_Delay(150);
+        all_leds_off();
+        HAL_Delay(150);
+    }
+}
+
+void UART_Print(const char *str) {
+    HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen(str), HAL_MAX_DELAY);
+}
+void generate_next_level(void) {
+    current_level++;
+    sequence_length = current_level + 1;
+
+    // Grab a hardware-generated true random 32-bit integer
+    if (HAL_RNG_GenerateRandomNumber(&hrng, &random32bit) == HAL_OK) {
+        sequence[sequence_length - 1] = (uint8_t)(random32bit % 3);
+    } else {
+        // Fallback to basic math if peripheral encounters a clock/seed error
+        sequence[sequence_length - 1] = rand() % 3;
+    }
+}
+void play_sequence(void) {
+    char buffer[50];
+    snprintf(buffer, sizeof(buffer), "\r\n--- LEVEL %u ---\r\nWatch the LEDs closely...\r\n", current_level);
+    UART_Print(buffer);
+    HAL_Delay(1000);
+
+    // Calculate flashing speed
+    uint32_t flash_delay = 800 - (current_level * 50);
+    if (flash_delay < 200) flash_delay = 200; // Speed floor so it's humanly possible
+
+    for (uint8_t i = 0; i < sequence_length; i++) {
+        turn_led_on(sequence[i]);
+        HAL_Delay(flash_delay);
+        all_leds_off();
+        HAL_Delay(flash_delay / 2); // Small gap between consecutive identical flashes
+    }
+    UART_Print("Your turn! Repeat the pattern...\r\n");
+    player_check_index = 0;
+    game_state = STATE_PLAYER_INPUT;
 }
 /* USER CODE END 0 */
 
@@ -103,21 +171,63 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_Init();
+  MX_USART2_UART_Init();
   MX_RNG_Init();
   /* USER CODE BEGIN 2 */
+    UART_Print("\r\n=========================\r\n");
+    UART_Print("   WELCOME TO SIMON SAYS   \r\n");
+    UART_Print("=========================\r\n");
+    UART_Print("Press ANY button to start playing.\r\n");
 
+    game_state = STATE_MENU;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_10, GPIO_PIN_SET);
-HAL_Delay(500);
+	  // --- STATE: SHOW SEQUENCE ---
+	        if (game_state == STATE_SHOW_SEQUENCE) {
+	            generate_next_level();
+	            play_sequence();
+	        }
 
-all_leds_on();
-all_leds_off();
+	        // --- STATE: PROCESS PLAYER INPUT ---
+	        else if (game_state == STATE_PLAYER_INPUT && button_pressed_flag) {
+	            // Clear the event flag immediately
+	            button_pressed_flag = 0;
+	            uint8_t pressed_button = last_pressed_button;
+
+	            // Provide instant visual feedback safely on the main thread
+	            turn_led_on(pressed_button);
+	            HAL_Delay(150);
+	            all_leds_off();
+
+	            // Evaluate the player's entry against the sequence
+	            if (pressed_button == sequence[player_check_index]) {
+	                player_check_index++;
+
+	                // Did they successfully replicate the entire level pattern?
+	                if (player_check_index >= sequence_length) {
+	                    UART_Print("✨ Correct!\r\n");
+	                    HAL_Delay(500);
+	                    game_state = STATE_SHOW_SEQUENCE;
+	                }
+	            } else {
+	                // Wrong button sequence picked
+	                char final_score_msg[128];
+	                snprintf(final_score_msg, sizeof(final_score_msg),
+	                         "\r\n❌ WRONG BUTTON! Game Over.\r\nYou reached Level %u.\r\nPress ANY button to return to menu.\r\n",
+	                         current_level);
+	                UART_Print(final_score_msg);
+
+	                play_error_blink();
+	                game_state = STATE_GAME_OVER;
+	            }
+	        }
+
+	        // Small poll rate yield to keep power stable
+	        HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -208,7 +318,7 @@ static void MX_RNG_Init(void)
   * @param None
   * @retval None
   */
-static void MX_USART2_Init(void)
+static void MX_USART2_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART2_Init 0 */
@@ -218,16 +328,17 @@ static void MX_USART2_Init(void)
   /* USER CODE BEGIN USART2_Init 1 */
 
   /* USER CODE END USART2_Init 1 */
-  husart2.Instance = USART2;
-  husart2.Init.BaudRate = 115200;
-  husart2.Init.WordLength = USART_WORDLENGTH_8B;
-  husart2.Init.StopBits = USART_STOPBITS_1;
-  husart2.Init.Parity = USART_PARITY_NONE;
-  husart2.Init.Mode = USART_MODE_TX_RX;
-  husart2.Init.CLKPolarity = USART_POLARITY_LOW;
-  husart2.Init.CLKPhase = USART_PHASE_1EDGE;
-  husart2.Init.CLKLastBit = USART_LASTBIT_DISABLE;
-  if (HAL_USART_Init(&husart2) != HAL_OK)
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -297,7 +408,68 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    // Software Debounce: ignore accidental noisy contact triggers
+    static uint32_t last_interrupt_time = 0;
+    uint32_t current_time = HAL_GetTick();
+    if ((current_time - last_interrupt_time) < DEBOUNCE_DELAY_MS) {
+        return;
+    }
+    last_interrupt_time = current_time;
 
+    // --- MENU CONTROLS ---
+    if (game_state == STATE_MENU) {
+        if (GPIO_Pin == BTN_1_GPIO_EXTI9_Pin || GPIO_Pin == BTN_2_GPIO_EXTI8_Pin || GPIO_Pin == BTN_3_GPIO_EXTI6_Pin) {
+            // Seed our random number generator using system up-time clock ticks
+            srand(HAL_GetTick());
+            current_level = 0;
+            game_state = STATE_SHOW_SEQUENCE;
+        }
+    }
+
+    // --- STANDBY/GAME OVER OVER CONTROLS ---
+    else if (game_state == STATE_GAME_OVER) {
+        if (GPIO_Pin == BTN_1_GPIO_EXTI9_Pin || GPIO_Pin == BTN_2_GPIO_EXTI8_Pin || GPIO_Pin == BTN_3_GPIO_EXTI6_Pin) {
+            UART_Print("\r\n=== MAIN MENU ===\r\nPress ANY button to start a new game.\r\n");
+            game_state = STATE_MENU;
+        }
+    }
+
+    // --- LIVE ACTIVE GAMEPLAY CONTROLS ---
+    else if (game_state == STATE_PLAYER_INPUT) {
+        uint8_t pressed_button = 99;
+        // Identify which hardware trigger dropped low
+        if (GPIO_Pin == BTN_1_GPIO_EXTI9_Pin)      pressed_button = 0;
+        else if (GPIO_Pin == BTN_2_GPIO_EXTI8_Pin) pressed_button = 1;
+        else if (GPIO_Pin == BTN_3_GPIO_EXTI6_Pin) pressed_button = 2;
+
+        if (pressed_button != 99) {
+            // Provide instant visual feedback by illuminating the user's pressed selector
+            turn_led_on(pressed_button);
+            all_leds_off();
+
+            // Evaluate against the correct historical code step
+            if (pressed_button == sequence[player_check_index]) {
+                player_check_index++;
+
+                // Did they clear the entire sequence pattern?
+                if (player_check_index >= sequence_length) {
+                    UART_Print("✨ Correct!\r\n");
+                    HAL_Delay(500);
+                    game_state = STATE_SHOW_SEQUENCE; // Set flags back to display engine loop
+                }
+            } else {
+                // Wrong step picked!
+                char final_score_msg[128];
+                snprintf(final_score_msg, sizeof(final_score_msg), "\r\n❌ WRONG BUTTON! Game Over.\r\nYou reached Level %u.\r\nPress ANY button to return to menu.\r\n", current_level);
+                UART_Print(final_score_msg);
+
+                play_error_blink();
+                game_state = STATE_GAME_OVER;
+            }
+        }
+    }
+}
 /* USER CODE END 4 */
 
 /**
