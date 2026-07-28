@@ -344,9 +344,3 @@ The STM32-generated portions of the project are subject to the licensing terms i
 Any additional application code should be distributed according to the license selected for the project.
 
 ---
-
-## Author
-
-**Michael Espino**
-
-Embedded Systems Project — STM32 Simon Says Memory Game
