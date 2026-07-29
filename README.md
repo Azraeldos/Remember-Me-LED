@@ -197,6 +197,13 @@ Press ANY button to return to menu.
 
 ---
 
+
+<img width="3024" height="4032" alt="IMG_4423" src="https://github.com/user-attachments/assets/28bf23fc-308c-42a5-a588-3d1ee9d52139" />
+
+
+
+
+
 ## Error Feedback
 
 An incorrect input activates both the error indicator and buzzer while flashing all three game LEDs.
