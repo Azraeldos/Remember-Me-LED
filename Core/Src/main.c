@@ -20,6 +20,7 @@
 #include "main.h"
 #include "i2c.h"
 #include "rng.h"
+#include "stm32l4xx_hal.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -28,6 +29,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
+#include "i2c_lcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -184,7 +186,7 @@ int main(void)
     UART_Print("   WELCOME TO SIMON SAYS   \r\n");
     UART_Print("=========================\r\n");
     UART_Print("Press ANY button to start playing.\r\n");
-
+lcd_init();
     game_state = STATE_MENU;
   /* USER CODE END 2 */
 
@@ -192,7 +194,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
  while (1)
   {
-  
+    lcd_put_cursor(0, 0);
+    lcd_send_string("Hello World!");
+    lcd_put_cursor(1, 0);
+    lcd_send_string("From STM32Nucleo!");
+    HAL_Delay(50);
+
       if (button_pressed_flag) {
           uint8_t pressed = last_pressed_button;
 
@@ -259,7 +266,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
-}
+
 
 /**
   * @brief System Clock Configuration
