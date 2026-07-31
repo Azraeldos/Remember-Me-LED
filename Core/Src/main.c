@@ -18,9 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dac.h"
 #include "i2c.h"
 #include "rng.h"
-#include "stm32l4xx_hal.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -181,6 +181,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_RNG_Init();
   MX_I2C1_Init();
+  MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
     UART_Print("\r\n=========================\r\n");
     UART_Print("   WELCOME TO SIMON SAYS   \r\n");
@@ -266,7 +267,7 @@ lcd_init();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
-
+}
 
 /**
   * @brief System Clock Configuration
