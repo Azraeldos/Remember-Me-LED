@@ -84,17 +84,19 @@ void all_leds_on(void){
 	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_SET);
 }
 void all_leds_off(void){
 	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_RESET);
 }
 void turn_led_on(uint8_t led_num) {
     if (led_num == 0)      	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_SET);
     else if (led_num == 1) 	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_SET);
     else if (led_num == 2) 	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_SET);
-
+    else if (led_num == 3) HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_SET);
 }
 void error_indicators_on(void) {
     HAL_GPIO_WritePin(GPIOB, ERR_LED_GPIO_Output_Pin | ERR_BUZZER_GPIO_Output_Pin, GPIO_PIN_SET);
@@ -122,9 +124,9 @@ void generate_next_level(void) {
     sequence_length = current_level + 1;
 
     if (HAL_RNG_GenerateRandomNumber(&hrng, &random32bit) == HAL_OK) {
-        sequence[sequence_length - 1] = (uint8_t)(random32bit % 3);
+        sequence[sequence_length - 1] = (uint8_t)(random32bit % 4);
     } else {
-        sequence[sequence_length - 1] = rand() % 3;
+        sequence[sequence_length - 1] = rand() % 4;
     }
 }
 void play_sequence(void) {
@@ -195,11 +197,11 @@ lcd_init();
   /* USER CODE BEGIN WHILE */
  while (1)
   {
-    lcd_put_cursor(0, 0);
-    lcd_send_string("Hello World!");
-    lcd_put_cursor(1, 0);
-    lcd_send_string("From STM32Nucleo!");
-    HAL_Delay(50);
+    // lcd_put_cursor(0, 0);
+    // lcd_send_string("Hello World!");
+    // lcd_put_cursor(1, 0);
+    // lcd_send_string("From STM32Nucleo!");
+    // HAL_Delay(50);
 
       if (button_pressed_flag) {
           uint8_t pressed = last_pressed_button;
@@ -265,7 +267,7 @@ lcd_init();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+  
   /* USER CODE END 3 */
 }
 
@@ -342,7 +344,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     } else if (GPIO_Pin == BTN_3_GPIO_EXTI6_Pin) {
         last_pressed_button = 2;
         button_pressed_flag = 1;
+    }   else if (GPIO_Pin == BTN_4_GPIO_EXTI7_Pin) {
+        last_pressed_button = 3;
+        button_pressed_flag = 1;
     }
+    
 }
 /* USER CODE END 4 */
 
