@@ -17,7 +17,8 @@
 #define LCD_CMD_SET_CURSOR 0x80
 #define LCD_CMD_INIT_8_BIT_MODE 0x30
 #define LCD_CMD_INIT_4_BIT_MODE 0x20
-
+#define LCD_CMD_ENTRY_SCROLL  0x07
+#define LCD_LINE2_ADDR        0xC0
 /**
  * @brief Initializes the LCD
  *
@@ -78,4 +79,31 @@ void lcd_clear(void);
  */
 uint8_t scan_i2c_address(void);
 
+/**
+ * @brief Prints wrapped text 
+ *
+ * This function wraps overflow content.
+ */
+void LCD_PrintWrapped(const char* str);
+
+/**
+ * @brief Prints horrizontal scroll text 
+ *
+ * This function horrizontally scrolls overflow content.
+ */
+void LCD_ScrollMessage(char* str);
+
+/**
+ * @brief Enables horrizontal scroll text 
+ *
+ * This function horrizontally scrolls overflow content.
+ */
+void LCD_AutoScroll_Enable(void);
+
+/**
+ * @brief Disables horrizontal scroll text 
+ *
+ * This function horrizontally scrolls overflow content.
+ */
+void LCD_AutoScroll_Disable(void);
 #endif /* I2C_LCD_H */

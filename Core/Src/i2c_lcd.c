@@ -121,3 +121,43 @@ uint8_t scan_i2c_address(void)
     printf("No I2C devices found.\n");
     return 0;
 }
+void LCD_PrintWrapped(const char* str) {
+    lcd_send_cmd(LCD_CMD_CLEAR_DISPLAY);
+    HAL_Delay(2);
+    
+    uint8_t i = 0;
+    
+    // Line 1
+    lcd_put_cursor(0, 0);
+    while (str[i] != '\0' && i < 16) {
+        lcd_send_data(str[i++]);
+    }
+    
+    // Line 2
+    if (str[i] != '\0') {
+        lcd_put_cursor(1, 0);
+        uint8_t line2_count = 0;
+        while (str[i] != '\0' && line2_count < 16) {
+            lcd_send_data(str[i++]);
+            line2_count++;
+        }
+    }
+}
+void LCD_ScrollMessage(char* str) {
+    lcd_put_cursor(0, 15);
+    LCD_AutoScroll_Enable();
+    
+    while(*str) {
+        lcd_send_data(*str++);
+        HAL_Delay(300);
+    }
+    
+    LCD_AutoScroll_Disable();
+}
+void LCD_AutoScroll_Enable(void) {
+    lcd_send_cmd(LCD_CMD_ENTRY_SCROLL); 
+}
+
+void LCD_AutoScroll_Disable(void) {
+   lcd_send_cmd(LCD_CMD_ENTRY_MODE_SET); 
+}

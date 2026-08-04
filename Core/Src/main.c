@@ -202,6 +202,13 @@ lcd_init();
     // lcd_put_cursor(1, 0);
     // lcd_send_string("From STM32Nucleo!");
     // HAL_Delay(50);
+    // Option A: Print wrapping text across both lines
+    // LCD_PrintWrapped("STM32 HAL Line Wrapping Test!");
+
+    HAL_Delay(3000);
+
+    // Option B: Scroll text horizontally
+    LCD_ScrollMessage("Hello STM32! horrizontal scroll test");
 
       if (button_pressed_flag) {
           uint8_t pressed = last_pressed_button;
