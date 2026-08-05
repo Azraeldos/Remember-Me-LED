@@ -1,6 +1,7 @@
 #include "i2c_lcd.h"
 #include "i2c.h"
 #include <stdio.h>
+#include <string.h>
 // Function to initialize the LCD
 void lcd_init(void)
 {
@@ -97,7 +98,6 @@ void lcd_put_cursor(int row, int col)
     lcd_send_cmd(col); // Send command to set cursor position
 }
 
-// Function to send a string to the LCD
 void lcd_send_string(char *str)
 {
     while (*str) lcd_send_data(*str++); // Send each character of the string
@@ -143,21 +143,51 @@ void LCD_PrintWrapped(const char* str) {
         }
     }
 }
-void LCD_ScrollMessage(char* str) {
-    lcd_put_cursor(0, 15);
-    LCD_AutoScroll_Enable();
+// Helper to scroll a message across a specific row without shifting the entire screen
+static void scroll_line(uint8_t row, const char* str, uint16_t delay_ms) {
+    uint16_t len = strlen(str);
     
-    while(*str) {
-        lcd_send_data(*str++);
-        HAL_Delay(300);
+    // Short strings don't need scrolling
+    if (len <= 16) {
+        lcd_put_cursor(row, 0);
+        lcd_send_string((char*)str);
+        for (uint16_t i = len; i < 16; i++) {
+            lcd_send_data(' '); // Clear trailing characters
+        }
+        return;
     }
-    
-    LCD_AutoScroll_Disable();
-}
-void LCD_AutoScroll_Enable(void) {
-    lcd_send_cmd(LCD_CMD_ENTRY_SCROLL); 
+
+    char window[17];
+    window[16] = '\0'; // Always null-terminated
+
+  // We go up to 'len' so the string completely exits left.
+    for (uint16_t i = 0; i <= len; i++) {
+        // Build the 16-character frame dynamically
+        for (uint8_t col = 0; col < 16; col++) {
+            if ((i + col) < len) {
+                window[col] = str[i + col];
+            } else {
+                window[col] = ' '; // Append spaces on the fly when string ends
+            }
+        }
+        
+        lcd_put_cursor(row, 0);
+        lcd_send_string(window);
+        HAL_Delay(delay_ms);
+    }
+
+    // Reset back to the start of the string before the function exits
+    for (uint8_t col = 0; col < 16; col++) {
+        window[col] = str[col];
+    }
+    lcd_put_cursor(row, 0);
+    lcd_send_string(window);
 }
 
-void LCD_AutoScroll_Disable(void) {
-   lcd_send_cmd(LCD_CMD_ENTRY_MODE_SET); 
+void LCD_ScrollMessageTop(const char* str) {
+    scroll_line(0, str, 250);
+}
+
+void LCD_ScrollMessageBottom(const char* str) {
+    scroll_line(1, str, 250);
 }

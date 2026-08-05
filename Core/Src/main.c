@@ -131,8 +131,9 @@ void generate_next_level(void) {
 }
 void play_sequence(void) {
     char buffer[50];
-    snprintf(buffer, sizeof(buffer), "\r\n--- LEVEL %u ---\r\nWatch the LEDs closely...\r\n", current_level);
-    UART_Print(buffer);
+    snprintf(buffer, sizeof(buffer), "--- LEVEL %u ---", current_level);  
+    LCD_ScrollMessageTop(buffer);
+    LCD_ScrollMessageBottom("Watch the LEDs closely...");
     HAL_Delay(1000);
 
 
@@ -145,7 +146,7 @@ void play_sequence(void) {
         all_leds_off();
         HAL_Delay(flash_delay / 2); // Small gap between consecutive identical flashes
     }
-    UART_Print("Your turn! Repeat the pattern...\r\n");
+    LCD_ScrollMessageTop("Your turn! Repeat the pattern...");
     player_check_index = 0;
     game_state = STATE_PLAYER_INPUT;
 }
@@ -185,11 +186,10 @@ int main(void)
   MX_I2C1_Init();
   MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
-    UART_Print("\r\n=========================\r\n");
-    UART_Print("   WELCOME TO SIMON SAYS   \r\n");
-    UART_Print("=========================\r\n");
-    UART_Print("Press ANY button to start playing.\r\n");
-lcd_init();
+  lcd_init();
+  LCD_ScrollMessageTop("WELCOME TO SIMON SAYS");
+  LCD_ScrollMessageBottom("Press ANY button to start");
+    
     game_state = STATE_MENU;
   /* USER CODE END 2 */
 
@@ -197,18 +197,6 @@ lcd_init();
   /* USER CODE BEGIN WHILE */
  while (1)
   {
-    // lcd_put_cursor(0, 0);
-    // lcd_send_string("Hello World!");
-    // lcd_put_cursor(1, 0);
-    // lcd_send_string("From STM32Nucleo!");
-    // HAL_Delay(50);
-    // Option A: Print wrapping text across both lines
-    // LCD_PrintWrapped("STM32 HAL Line Wrapping Test!");
-
-    HAL_Delay(3000);
-
-    // Option B: Scroll text horizontally
-    LCD_ScrollMessage("Hello STM32! horrizontal scroll test");
 
       if (button_pressed_flag) {
           uint8_t pressed = last_pressed_button;
@@ -231,7 +219,10 @@ lcd_init();
               turn_led_on(pressed);
               HAL_Delay(150);
               all_leds_off();
-              UART_Print("\r\n=== MAIN MENU ===\r\nPress ANY button to start a new game.\r\n");
+              LCD_ScrollMessageTop("=== MAIN MENU ===");
+              //overflows to top
+              LCD_ScrollMessageBottom("Press ANY button ");
+
               game_state = STATE_MENU;
           }
 
@@ -247,18 +238,18 @@ lcd_init();
                   player_check_index++;
 
                   if (player_check_index >= sequence_length) {
-                      UART_Print("✨ Correct!\r\n");
+                      LCD_ScrollMessageTop(" Correct!");
                       HAL_Delay(500);
                       game_state = STATE_SHOW_SEQUENCE;
                   }
               } else {
+                play_error_blink();
                   char final_score_msg[128];
-                  snprintf(final_score_msg, sizeof(final_score_msg),
-                           "\r\n❌ WRONG BUTTON! Game Over.\r\nYou reached Level %u.\r\nPress ANY button to return to menu.\r\n",
-                           current_level);
-                  UART_Print(final_score_msg);
+                  snprintf(final_score_msg, sizeof(final_score_msg), " WRONG BUTTON! Game Over. You reached Level %u.", current_level);
 
-                  play_error_blink();
+                  LCD_ScrollMessageTop(final_score_msg);
+                  LCD_ScrollMessageBottom("Press ANY button to return to menu.");
+
                   game_state = STATE_GAME_OVER;
               }
           }

@@ -91,8 +91,13 @@ void LCD_PrintWrapped(const char* str);
  *
  * This function horrizontally scrolls overflow content.
  */
-void LCD_ScrollMessage(char* str);
-
+void LCD_ScrollMessageTop(const char* str);
+/**
+ * @brief Prints horrizontal scroll text 
+ *
+ * This function horrizontally scrolls overflow content.
+ */
+void LCD_ScrollMessageBottom(const char* str);
 /**
  * @brief Enables horrizontal scroll text 
  *
