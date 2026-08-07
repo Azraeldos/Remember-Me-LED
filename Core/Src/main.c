@@ -27,10 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
-#include "i2c_lcd.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,23 +49,8 @@
 
 /* USER CODE BEGIN PV */
 
-#define SEQUENCE_MAX_LENGTH 50
 #define DEBOUNCE_DELAY_MS   150
 
-typedef enum {
-    STATE_MENU,
-    STATE_SHOW_SEQUENCE,
-    STATE_PLAYER_INPUT,
-    STATE_GAME_OVER
-} GameState_t;
-
-volatile GameState_t game_state = STATE_MENU;
-
-uint8_t sequence[SEQUENCE_MAX_LENGTH];
-uint8_t current_level = 0;
-uint8_t sequence_length = 0;
-uint8_t player_check_index = 0;
-uint32_t random32bit;
 volatile uint8_t button_pressed_flag = 0;
 volatile uint8_t last_pressed_button = 0;
 /* USER CODE END PV */
@@ -82,76 +64,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void all_leds_on(void){
-	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_SET);
-}
-void all_leds_off(void){
-	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_RESET);
-}
-void turn_led_on(uint8_t led_num) {
-    if (led_num == 0)      	HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_SET);
-    else if (led_num == 1) 	HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_SET);
-    else if (led_num == 2) 	HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_SET);
-    else if (led_num == 3) HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_SET);
-}
-void error_indicators_on(void) {
-    HAL_GPIO_WritePin(GPIOB, ERR_LED_GPIO_Output_Pin | ERR_BUZZER_GPIO_Output_Pin, GPIO_PIN_SET);
-}
 
-void error_indicators_off(void) {
-    HAL_GPIO_WritePin(GPIOB, ERR_LED_GPIO_Output_Pin | ERR_BUZZER_GPIO_Output_Pin, GPIO_PIN_RESET);
-}
-void play_error_blink(void) {
-    for (int i = 0; i < 4; i++) {
-        all_leds_on();
-        error_indicators_on();
-        HAL_Delay(150);
-        all_leds_off();
-        error_indicators_off();
-        HAL_Delay(150);
-    }
-}
-
-void UART_Print(const char *str) {
-    HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen(str), HAL_MAX_DELAY);
-}
-void generate_next_level(void) {
-    current_level++;
-    sequence_length = current_level + 1;
-
-    if (HAL_RNG_GenerateRandomNumber(&hrng, &random32bit) == HAL_OK) {
-        sequence[sequence_length - 1] = (uint8_t)(random32bit % 4);
-    } else {
-        sequence[sequence_length - 1] = rand() % 4;
-    }
-}
-void play_sequence(void) {
-    char buffer[50];
-    snprintf(buffer, sizeof(buffer), "--- LEVEL %u ---", current_level);  
-    LCD_ScrollMessageTop(buffer);
-    LCD_ScrollMessageBottom("Watch the LEDs closely...");
-    HAL_Delay(1000);
-
-
-    uint32_t flash_delay = 800 - (current_level * 50);
-    if (flash_delay < 200) flash_delay = 200; // Speed floor
-
-    for (uint8_t i = 0; i < sequence_length; i++) {
-        turn_led_on(sequence[i]);
-        HAL_Delay(flash_delay);
-        all_leds_off();
-        HAL_Delay(flash_delay / 2); // Small gap between consecutive identical flashes
-    }
-    LCD_ScrollMessageTop("Your turn! Repeat the pattern...");
-    player_check_index = 0;
-    game_state = STATE_PLAYER_INPUT;
-}
 /* USER CODE END 0 */
 
 /**
@@ -188,11 +101,7 @@ int main(void)
   MX_I2C1_Init();
   MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
-  lcd_init();
-  LCD_ScrollMessageTop("WELCOME TO SIMON SAYS");
-  LCD_ScrollMessageBottom("Press ANY button to start");
-    
-    game_state = STATE_MENU;
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -208,70 +117,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
  while (1)
   {
-
-      if (button_pressed_flag) {
-          uint8_t pressed = last_pressed_button;
-
-          
-          if (game_state == STATE_MENU) {
-              button_pressed_flag = 0;
-              turn_led_on(pressed);
-              HAL_Delay(150);
-              all_leds_off();
-
-              srand(HAL_GetTick());
-              current_level = 0;
-              game_state = STATE_SHOW_SEQUENCE;
-          }
-
-         
-          else if (game_state == STATE_GAME_OVER) {
-              button_pressed_flag = 0;
-              turn_led_on(pressed);
-              HAL_Delay(150);
-              all_leds_off();
-              LCD_ScrollMessageTop("=== MAIN MENU ===");
-              //overflows to top
-              LCD_ScrollMessageBottom("Press ANY button ");
-
-              game_state = STATE_MENU;
-          }
-
-          
-          else if (game_state == STATE_PLAYER_INPUT) {
-              button_pressed_flag = 0;
-              turn_led_on(pressed);
-              HAL_Delay(200);
-              all_leds_off();
-
-              
-              if (pressed == sequence[player_check_index]) {
-                  player_check_index++;
-
-                  if (player_check_index >= sequence_length) {
-                      LCD_ScrollMessageTop(" Correct!");
-                      HAL_Delay(500);
-                      game_state = STATE_SHOW_SEQUENCE;
-                  }
-              } else {
-                play_error_blink();
-                  char final_score_msg[128];
-                  snprintf(final_score_msg, sizeof(final_score_msg), " WRONG BUTTON! Game Over. You reached Level %u.", current_level);
-
-                  LCD_ScrollMessageTop(final_score_msg);
-                  LCD_ScrollMessageBottom("Press ANY button to return to menu.");
-
-                  game_state = STATE_GAME_OVER;
-              }
-          }
-      }
-
-      else if (game_state == STATE_SHOW_SEQUENCE) {
-          generate_next_level();
-          play_sequence();
-      }
-
-      HAL_Delay(10);
   }
     /* USER CODE END WHILE */
 
