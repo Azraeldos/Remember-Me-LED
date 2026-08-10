@@ -101,7 +101,8 @@ int main(void)
   MX_I2C1_Init();
   MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 4095);
   /* USER CODE END 2 */
 
   /* Init scheduler */

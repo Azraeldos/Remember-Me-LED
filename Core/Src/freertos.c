@@ -30,6 +30,7 @@
 #include "stdlib.h"
 #include "i2c_lcd.h"
 #include "rng.h"
+#include "dac.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +46,7 @@ typedef enum {
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SEQUENCE_MAX_LENGTH 50
-
+#define INPUT_TIMEOUT_MS  5000 // Total time allowed per input (5 seconds)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -64,6 +65,7 @@ uint32_t random32bit;
 extern volatile uint8_t button_pressed_flag;
 extern volatile uint8_t last_pressed_button;
 extern RNG_HandleTypeDef hrng;
+extern DAC_HandleTypeDef hdac1;
 /* USER CODE END Variables */
 /* Definitions for DisplayTask */
 osThreadId_t DisplayTaskHandle;
@@ -96,6 +98,7 @@ void play_error_blink(void);
 void generate_next_level(void);
 void play_sequence(void);
 uint8_t RTOS_Scroll_Interruptible(uint8_t row, const char* str, uint32_t delay_ms);
+void set_dac_voltmeter(uint32_t raw_value);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -183,26 +186,104 @@ void StartTask02(void *argument)
   RTOS_Scroll_Interruptible(0, "WELCOME TO SIMON SAYS", 200);
   RTOS_Scroll_Interruptible(1, "Press ANY button to start", 200);
 
+  set_dac_voltmeter(4095);
   game_state = STATE_MENU;
+
   /* Infinite loop */
   for(;;)
   {
-      if (button_pressed_flag) {
-          uint8_t pressed = last_pressed_button;
 
-          if (game_state == STATE_MENU) {
+      if (game_state == STATE_MENU) {
+          if (button_pressed_flag) {
+              uint8_t pressed = last_pressed_button;
               button_pressed_flag = 0;
               osEventFlagsClear(EXTICallbackHandle, 0x01);
-              
+
               turn_led_on(pressed);
               osDelay(150);
               all_leds_off();
 
               srand(HAL_GetTick());
               current_level = 0;
+              set_dac_voltmeter(4095);
               game_state = STATE_SHOW_SEQUENCE;
           }
-          else if (game_state == STATE_GAME_OVER) {
+      }
+      else if (game_state == STATE_SHOW_SEQUENCE) {
+          generate_next_level();
+          play_sequence();
+      }
+      else if (game_state == STATE_PLAYER_INPUT) {
+          uint32_t start_tick = osKernelGetTickCount();
+          uint32_t timeout_ticks = (5000 * osKernelGetTickFreq()) / 1000;
+          uint8_t input_received = 0;
+
+          while ((osKernelGetTickCount() - start_tick) < timeout_ticks) {
+              uint32_t elapsed = osKernelGetTickCount() - start_tick;
+              uint32_t remaining = timeout_ticks - elapsed;
+
+              uint32_t dac_val = (remaining * 4095) / timeout_ticks;
+              set_dac_voltmeter(dac_val);
+
+              if (button_pressed_flag) {
+                  uint8_t pressed = last_pressed_button;
+                  button_pressed_flag = 0;
+                  osEventFlagsClear(EXTICallbackHandle, 0x01);
+
+                  turn_led_on(pressed);
+                  osDelay(200);
+                  all_leds_off();
+
+                  if (pressed == sequence[player_check_index]) {
+                      player_check_index++;
+
+                      if (player_check_index >= sequence_length) {
+                          set_dac_voltmeter(4095);
+                          lcd_clear();
+                          lcd_put_cursor(0, 0);
+                          lcd_send_string(" Correct!");
+                          osDelay(500);
+                          game_state = STATE_SHOW_SEQUENCE;
+                      }
+                  } else {
+                      set_dac_voltmeter(0);
+                      play_error_blink();
+
+                      char final_score_msg[32];
+                      snprintf(final_score_msg, sizeof(final_score_msg), "WRONG! Level %u", current_level);
+
+                      lcd_clear();
+                      lcd_put_cursor(0, 0);
+                      lcd_send_string(final_score_msg);
+                      lcd_put_cursor(1, 0);
+                      lcd_send_string("Press button...");
+
+                      game_state = STATE_GAME_OVER;
+                  }
+
+                  input_received = 1;
+                  break;
+              }
+
+              osDelay(20);
+          }
+
+          if (!input_received && game_state == STATE_PLAYER_INPUT) {
+              set_dac_voltmeter(0);
+              play_error_blink();
+
+              lcd_clear();
+              lcd_put_cursor(0, 0);
+              lcd_send_string("TIME OUT!");
+              lcd_put_cursor(1, 0);
+              lcd_send_string("Press button...");
+
+              game_state = STATE_GAME_OVER;
+          }
+      }
+      else if (game_state == STATE_GAME_OVER) {
+          if (button_pressed_flag) {
+              uint8_t pressed = last_pressed_button;
               button_pressed_flag = 0;
               osEventFlagsClear(EXTICallbackHandle, 0x01);
 
@@ -216,47 +297,12 @@ void StartTask02(void *argument)
               lcd_put_cursor(1, 0);
               lcd_send_string("Press ANY button");
 
+              set_dac_voltmeter(4095);
               game_state = STATE_MENU;
           }
-          else if (game_state == STATE_PLAYER_INPUT) {
-              button_pressed_flag = 0;
-              osEventFlagsClear(EXTICallbackHandle, 0x01);
-
-              turn_led_on(pressed);
-              osDelay(200);
-              all_leds_off();
-
-              if (pressed == sequence[player_check_index]) {
-                  player_check_index++;
-
-                  if (player_check_index >= sequence_length) {
-                      lcd_clear();
-                      lcd_put_cursor(0, 0);
-                      lcd_send_string(" Correct!");
-                      osDelay(500);
-                      game_state = STATE_SHOW_SEQUENCE;
-                  }
-              } else {
-                  play_error_blink();
-                  char final_score_msg[64];
-                  snprintf(final_score_msg, sizeof(final_score_msg), "WRONG! Level %u", current_level);
-
-                  lcd_clear();
-                  lcd_put_cursor(0, 0);
-                  lcd_send_string(final_score_msg);
-                  lcd_put_cursor(1, 0);
-                  lcd_send_string("Press button...");
-
-                  game_state = STATE_GAME_OVER;
-              }
-          }
-      }
-      else if (game_state == STATE_SHOW_SEQUENCE) {
-          generate_next_level();
-          play_sequence();
       }
 
-      osDelay(10); // Yield to keep RTOS watchdog happy
+      osDelay(10);
   }
   /* USER CODE END StartTask02 */
 }
@@ -342,7 +388,16 @@ void play_sequence(void) {
     player_check_index = 0;
     game_state = STATE_PLAYER_INPUT;
 }
-
+void set_dac_voltmeter(uint32_t raw_value) {
+    if (raw_value == 0) {
+        // Disables active drive on PA4 so it drops cleanly to 0.00V
+        HAL_DAC_Stop(&hdac1, DAC_CHANNEL_1);
+    } else {
+        if (raw_value > 4095) raw_value = 4095;
+        HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, raw_value);
+    }
+}
 // RTOS-Friendly Interruptible Line Scrolling
 uint8_t RTOS_Scroll_Interruptible(uint8_t row, const char* str, uint32_t delay_ms) {
     uint16_t len = strlen(str);
