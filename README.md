@@ -49,6 +49,9 @@ The original bare-metal implementation was redesigned around **FreeRTOS**, separ
                         ▼
                  Game State Update
 ```
+ <img width="2160" height="2880" alt="IMG_4572" src="https://github.com/user-attachments/assets/a8105149-4d7f-4de5-b9a1-665bf6c42e6e" />
+ <img width="2160" height="2880" alt="IMG_4571" src="https://github.com/user-attachments/assets/89e983a4-0584-47c3-ad4e-cc7875ae37e4" />
+
 
 ### RTOS Concepts Implemented
 
