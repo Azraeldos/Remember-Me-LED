@@ -1,6 +1,6 @@
 # STM32 Simon Says Memory Game
 
-An embedded **Simon Says memory game** developed in **C using STM32 HAL and FreeRTOS**. The system generates an increasingly difficult LED sequence that the player must reproduce using physical push buttons, with real-time feedback through an **I2C LCD, UART terminal, LEDs, and buzzer**.
+An embedded **Simon Says memory game** developed in **C using STM32 HAL and FreeRTOS**. The system generates an increasingly difficult LED sequence that the player must reproduce using physical push buttons, with real-time feedback through an **I2C LCD, UART terminal, LEDs, DAC digital led voltmeter, and buzzer**.
 
 ## Key Features
 
@@ -11,7 +11,7 @@ An embedded **Simon Says memory game** developed in **C using STM32 HAL and Free
 * **Progressive difficulty** by decreasing LED playback delay as levels increase
 * **I2C LCD** for game status, level, and score display
 * **USART2 (115200 8N1)** for debugging and terminal output
-* **Buzzer and error LED** for audio/visual game-over feedback
+* **Buzzer, digital led voltmeter, and error LED** for audio/visual game-over feedback
 
 ## Hardware
 
@@ -22,6 +22,7 @@ An embedded **Simon Says memory game** developed in **C using STM32 HAL and Free
 | 4x Push Buttons | GPIO EXTI           | Player input               |
 | LCD             | I2C                 | Game status and score      |
 | Buzzer          | GPIO Output         | Audio feedback             |
+| Led voltmeter   | DAC                 | Visual count down          |
 | Error LED       | GPIO Output         | Game-over indicator        |
 | USART2          | UART                | Serial debugging           |
 | RNG             | Hardware Peripheral | Random sequence generation |
