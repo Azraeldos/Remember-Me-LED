@@ -190,16 +190,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     last_interrupt_time = current_time;
 
     // Identify which pin was pressed and set the flag
-    if (GPIO_Pin == BTN_1_GPIO_EXTI9_Pin) {
+    if (GPIO_Pin == BTN_1_Pin) {
         last_pressed_button = 0;
         button_pressed_flag = 1;
-    } else if (GPIO_Pin == BTN_2_GPIO_EXTI8_Pin) {
+    } else if (GPIO_Pin == BTN_2_Pin) {
         last_pressed_button = 1;
         button_pressed_flag = 1;
-    } else if (GPIO_Pin == BTN_3_GPIO_EXTI6_Pin) {
+    } else if (GPIO_Pin == BTN_3_Pin) {
         last_pressed_button = 2;
         button_pressed_flag = 1;
-    }   else if (GPIO_Pin == BTN_4_GPIO_EXTI7_Pin) {
+    }   else if (GPIO_Pin == BTN_4_Pin) {
         last_pressed_button = 3;
         button_pressed_flag = 1;
     }

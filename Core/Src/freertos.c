@@ -310,32 +310,32 @@ void StartTask02(void *argument)
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 void all_leds_on(void){
-    HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_3_GPIO_Port, LED_3_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_4_GPIO_Port, LED_4_Pin, GPIO_PIN_SET);
 }
 
 void all_leds_off(void){
-    HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_3_GPIO_Port, LED_3_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_4_GPIO_Port, LED_4_Pin, GPIO_PIN_RESET);
 }
 
 void turn_led_on(uint8_t led_num) {
-    if (led_num == 0)      HAL_GPIO_WritePin(LED_1_GPIO_Output_GPIO_Port, LED_1_GPIO_Output_Pin, GPIO_PIN_SET);
-    else if (led_num == 1) HAL_GPIO_WritePin(LED_2_GPIO_Output_GPIO_Port, LED_2_GPIO_Output_Pin, GPIO_PIN_SET);
-    else if (led_num == 2) HAL_GPIO_WritePin(LED_3_GPIO_Output_GPIO_Port, LED_3_GPIO_Output_Pin, GPIO_PIN_SET);
-    else if (led_num == 3) HAL_GPIO_WritePin(LED_4_GPIO_Output_GPIO_Port, LED_4_GPIO_Output_Pin, GPIO_PIN_SET);
+    if (led_num == 0)      HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
+    else if (led_num == 1) HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
+    else if (led_num == 2) HAL_GPIO_WritePin(LED_3_GPIO_Port, LED_3_Pin, GPIO_PIN_SET);
+    else if (led_num == 3) HAL_GPIO_WritePin(LED_4_GPIO_Port, LED_4_Pin, GPIO_PIN_SET);
 }
 
 void error_indicators_on(void) {
-    HAL_GPIO_WritePin(GPIOB, ERR_LED_GPIO_Output_Pin | ERR_BUZZER_GPIO_Output_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, ERR_LED_1_Pin | ERR_LED_2_Pin | ERR_BUZZER_1_Pin | ERR_BUZZER_2_Pin, GPIO_PIN_SET);
 }
 
 void error_indicators_off(void) {
-    HAL_GPIO_WritePin(GPIOB, ERR_LED_GPIO_Output_Pin | ERR_BUZZER_GPIO_Output_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, ERR_LED_1_Pin | ERR_LED_2_Pin | ERR_BUZZER_1_Pin | ERR_BUZZER_2_Pin, GPIO_PIN_RESET);
 }
 
 void play_error_blink(void) {

@@ -57,34 +57,32 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define LED_4_Pin GPIO_PIN_3
-#define LED_4_GPIO_Port GPIOC
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
 #define VOLTMETER_Pin GPIO_PIN_4
 #define VOLTMETER_GPIO_Port GPIOA
-#define ERR_LED_2_Pin GPIO_PIN_12
-#define ERR_LED_2_GPIO_Port GPIOB
-#define ERR_LED_1_Pin GPIO_PIN_13
+#define ERR_LED_1_Pin GPIO_PIN_12
 #define ERR_LED_1_GPIO_Port GPIOB
+#define ERR_LED_2_Pin GPIO_PIN_13
+#define ERR_LED_2_GPIO_Port GPIOB
 #define ERR_BUZZER_1_Pin GPIO_PIN_14
 #define ERR_BUZZER_1_GPIO_Port GPIOB
 #define ERR_BUZZER_2_Pin GPIO_PIN_15
 #define ERR_BUZZER_2_GPIO_Port GPIOB
-#define BTN_3_Pin GPIO_PIN_6
-#define BTN_3_GPIO_Port GPIOC
-#define BTN_3_EXTI_IRQn EXTI9_5_IRQn
-#define BTN_4_Pin GPIO_PIN_7
-#define BTN_4_GPIO_Port GPIOC
-#define BTN_4_EXTI_IRQn EXTI9_5_IRQn
-#define BTN_2_Pin GPIO_PIN_8
-#define BTN_2_GPIO_Port GPIOC
-#define BTN_2_EXTI_IRQn EXTI9_5_IRQn
-#define BTN_1_Pin GPIO_PIN_9
+#define BTN_1_Pin GPIO_PIN_6
 #define BTN_1_GPIO_Port GPIOC
 #define BTN_1_EXTI_IRQn EXTI9_5_IRQn
+#define BTN_2_Pin GPIO_PIN_7
+#define BTN_2_GPIO_Port GPIOC
+#define BTN_2_EXTI_IRQn EXTI9_5_IRQn
+#define BTN_3_Pin GPIO_PIN_8
+#define BTN_3_GPIO_Port GPIOC
+#define BTN_3_EXTI_IRQn EXTI9_5_IRQn
+#define BTN_4_Pin GPIO_PIN_9
+#define BTN_4_GPIO_Port GPIOC
+#define BTN_4_EXTI_IRQn EXTI9_5_IRQn
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
@@ -95,6 +93,8 @@ void Error_Handler(void);
 #define LED_2_GPIO_Port GPIOC
 #define LED_3_Pin GPIO_PIN_12
 #define LED_3_GPIO_Port GPIOC
+#define LED_4_Pin GPIO_PIN_2
+#define LED_4_GPIO_Port GPIOD
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
 #define LCD_SCL_Pin GPIO_PIN_6
