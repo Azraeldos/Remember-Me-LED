@@ -51,27 +51,27 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, LED_4_GPIO_Output_Pin|LED_1_GPIO_Output_Pin|LED_2_GPIO_Output_Pin|LED_3_GPIO_Output_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, LED_4_Pin|LED_1_Pin|LED_2_Pin|LED_3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ERR_LED_GPIO_Output_Pin|ERR_BUZZER_GPIO_Output_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, ERR_LED_2_Pin|ERR_LED_1_Pin|ERR_BUZZER_1_Pin|ERR_BUZZER_2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : LED_4_GPIO_Output_Pin LED_1_GPIO_Output_Pin LED_2_GPIO_Output_Pin LED_3_GPIO_Output_Pin */
-  GPIO_InitStruct.Pin = LED_4_GPIO_Output_Pin|LED_1_GPIO_Output_Pin|LED_2_GPIO_Output_Pin|LED_3_GPIO_Output_Pin;
+  /*Configure GPIO pins : LED_4_Pin LED_1_Pin LED_2_Pin LED_3_Pin */
+  GPIO_InitStruct.Pin = LED_4_Pin|LED_1_Pin|LED_2_Pin|LED_3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ERR_LED_GPIO_Output_Pin ERR_BUZZER_GPIO_Output_Pin */
-  GPIO_InitStruct.Pin = ERR_LED_GPIO_Output_Pin|ERR_BUZZER_GPIO_Output_Pin;
+  /*Configure GPIO pins : ERR_LED_2_Pin ERR_LED_1_Pin ERR_BUZZER_1_Pin ERR_BUZZER_2_Pin */
+  GPIO_InitStruct.Pin = ERR_LED_2_Pin|ERR_LED_1_Pin|ERR_BUZZER_1_Pin|ERR_BUZZER_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BTN_3_GPIO_EXTI6_Pin BTN_4_GPIO_EXTI7_Pin BTN_2_GPIO_EXTI8_Pin BTN_1_GPIO_EXTI9_Pin */
-  GPIO_InitStruct.Pin = BTN_3_GPIO_EXTI6_Pin|BTN_4_GPIO_EXTI7_Pin|BTN_2_GPIO_EXTI8_Pin|BTN_1_GPIO_EXTI9_Pin;
+  /*Configure GPIO pins : BTN_3_Pin BTN_4_Pin BTN_2_Pin BTN_1_Pin */
+  GPIO_InitStruct.Pin = BTN_3_Pin|BTN_4_Pin|BTN_2_Pin|BTN_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
