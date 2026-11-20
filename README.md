@@ -98,7 +98,7 @@ The original bare-metal implementation was redesigned around **FreeRTOS**, separ
 <img width="1385" height="973" alt="Screenshot 2026-11-19 085514" src="https://github.com/user-attachments/assets/0af92864-4b74-4fcf-9a77-490927b5a697" />
 
 
-*Prototype / breadboard photos — custom PCB is in fab.*
+*Prototype — custom PCB is in fab.*
 
 ### RTOS Concepts Implemented
 
@@ -108,44 +108,8 @@ The original bare-metal implementation was redesigned around **FreeRTOS**, separ
 * **Interrupt Integration** — GPIO EXTI interrupts capture physical button events and pass input into the RTOS-driven application.
 * **Timing & Delays** — RTOS timing services are used for game sequencing and progressive difficulty.
 
-## Implementation Highlights
 
-### Random Sequence Generation
-
-```c
-uint32_t random32bit;
-
-if (HAL_RNG_GenerateRandomNumber(&hrng, &random32bit) == HAL_OK) {
-    sequence[sequence_length - 1] = (uint8_t)(random32bit % 4);
-} else {
-    sequence[sequence_length - 1] = (uint8_t)(rand() % 4);
-}
-```
-
-### Interrupt-Driven Button Debouncing
-
-```c
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    uint32_t current_time = HAL_GetTick();
-
-    if ((current_time - last_interrupt_time) < DEBOUNCE_DELAY_MS)
-        return;
-
-    last_interrupt_time = current_time;
-
-    // Signal button event to FreeRTOS
-}
-```
-
-### Progressive Difficulty
-
-```c
-uint32_t flash_delay = 800 - (current_level * 50);
-
-if (flash_delay < 200)
-    flash_delay = 200;
-```
 
 ## Embedded Concepts Demonstrated
 
-`Embedded C` • `FreeRTOS` • `RTOS Tasks/Threads` • `Event Synchronization` • `STM32 HAL` • `GPIO` • `EXTI Interrupts` • `I2C` • `UART` • `Hardware RNG` • `Software Debouncing` • `Concurrent Programming` • `Hardware/Software Integration` • `Custom PCB` • `LiPo Power Path`
+`Embedded C` • `FreeRTOS` • `RTOS Tasks/Threads` • `Event Synchronization` • `STM32 HAL` • `GPIO` • `EXTI Interrupts` • `I2C` • `UART` • `Hardware RNG` • `Software Debouncing` • `Concurrent Programming` • `Hardware/Software Integration` • `Custom PCB` • ` Power Path`
